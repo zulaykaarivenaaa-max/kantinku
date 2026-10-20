@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full bg-slate-50">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KantinKu - Sistem Informasi Kantin Modern</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: { brand: { 50: '#fff7ed', 100: '#ffedd5', 500: '#f97316', 600: '#ea580c', 700: '#c2410c' } }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="flex flex-col min-h-screen font-sans text-slate-800 antialiased">
+
+  <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16 gap-2">
+        <div class="flex items-center gap-3">
+          <a href="#" onclick="switchView('customer')" class="flex items-center gap-2 group p-1">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-amber-500 flex items-center justify-center text-white shadow-md">
+              <i class="fa-solid font-bold fa-utensils text-lg"></i>
+            </div>
+            <div>
+              <span class="text-xl font-bold bg-gradient-to-r from-brand-600 to-amber-600 bg-clip-text text-transparent">KantinKu</span>
+            </div>
+          </a>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <div class="bg-slate-100 p-1 rounded-xl flex items-center border border-slate-200 text-xs">
+            <button id="btn-role-customer" onclick="switchView('customer')" class="px-3 py-1.5 rounded-lg font-medium text-slate-700 bg-white shadow-xs">Mahasiswa</button>
+            <button id="btn-role-admin" onclick="switchView('admin')" class="px-3 py-1.5 rounded-lg font-medium text-slate-500">Panel Admin</button>
+          </div>
+
+          <button onclick="toggleCartDrawer(true)" class="relative p-2.5 rounded-xl bg-slate-100 text-slate-700">
+            <i class="fa-solid fa-cart-shopping text-lg"></i>
+            <span id="cart-badge-count" class="absolute -top-1.5 -right-1.5 bg-brand-600 text-white text-[11px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white hidden">0</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <!-- VIEW MAHASISWA -->
+    <div id="customer-view" class="space-y-6">
+      <div class="bg-gradient-to-r from-slate-900 to-brand-950 text-white p-6 rounded-2xl">
+        <h1 class="text-2xl font-bold">Pesan Makanan Tanpa Antri Di Kantin Kampus</h1>
+        <p class="text-slate-300 text-sm mt-1">Pilih menu, tentukan jumlah porsi, dan bayar dengan metode pembayaran favoritmu!</p>
+      </div>
+
+      <!-- SEARCH BAR -->
+      <div class="relative w-full max-w-md">
+        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </div>
+        <input 
+          type="text" 
+          id="search-input" 
+          oninput="handleSearch()" 
+          placeholder="Cari makanan atau minuman (contoh: Nasi, Es Teh)..." 
+          class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-xs"
+        >
+      </div>
+
+      <!-- GRID MENU -->
+      <div id="menu-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+    </div>
+
+    <!-- VIEW PANEL ADMIN -->
+    <div id="admin-view" class="space-y-6 hidden">
+      <div class="bg-slate-900 text-white p-6 rounded-2xl flex justify-between items-center">
+        <h1 class="text-2xl font-bold">Panel Admin Kantin</h1>
+      </div>
+      <div class="bg-white p-5 rounded-2xl border border-slate-200">
+        <h2 class="font-bold text-lg mb-4">Antrean Pesanan Masuk</h2>
+        <div id="admin-orders-container" class="space-y-3"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- CART DRAWER -->
+  <div id="cart-drawer-backdrop" class="fixed inset-0 bg-slate-900/60 z-40 hidden" onclick="toggleCartDrawer(false)"></div>
+  <aside id="cart-drawer" class="fixed top-0 right-0 h-full w-full max-w-md bg-white z-50 shadow-2xl flex flex-col transform translate-x-full transition-transform">
+    <div class="p-4 border-b flex justify-between items-center bg-slate-50">
+      <h2 class="font-bold text-lg">Keranjang Belanja</h2>
+      <button onclick="toggleCartDrawer(false)" class="text-slate-500"><i class="fa-solid fa-xmark text-xl"></i></button>
+    </div>
+    <div id="cart-items-container" class="flex-grow overflow-y-auto p-4 space-y-3"></div>
+    <div class="p-4 border-t bg-slate-50 space-y-3">
+      <div class="flex justify-between font-bold text-lg">
+        <span>Total Bayar:</span>
+        <span id="cart-total" class="text-brand-600">Rp 0</span>
+      </div>
+      <button onclick="openPaymentModal()" class="w-full py-3 bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-xl">Lanjut Ke Pembayaran</button>
+    </div>
+  </aside>
+
+  <!-- PAYMENT MODAL -->
+  <div id="payment-modal" class="fixed inset-0 z-50 bg-slate-900/60 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4">
+      <div class="flex justify-between items-center border-b pb-2">
+        <h3 class="font-bold text-lg">Pilih Metode Pembayaran</h3>
+        <button onclick="closePaymentModal()" class="text-slate-400"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <div class="grid grid-cols-3 gap-2">
+        <button type="button" onclick="setPaymentMethod('qris')" id="pay-qris" class="p-3 border-2 border-brand-500 bg-brand-50 rounded-xl font-bold text-xs text-brand-700">QRIS</button>
+        <button type="button" onclick="setPaymentMethod('ewallet')" id="pay-ewallet" class="p-3 border border-slate-200 rounded-xl font-bold text-xs text-slate-600">E-Wallet</button>
+        <button type="button" onclick="setPaymentMethod('cash')" id="pay-cash" class="p-3 border border-slate-200 rounded-xl font-bold text-xs text-slate-600">Tunai / Cash</button>
+      </div>
+
+      <div id="payment-box-qris" class="bg-slate-50 p-4 text-center rounded-xl border">
+        <p class="text-xs text-slate-500 mb-2">Scan QRIS menggunakan aplikasi E-Wallet / Bank</p>
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=KantinKu-Payment" class="w-32 h-32 mx-auto">
+      </div>
+
+      <div id="payment-box-ewallet" class="bg-slate-50 p-4 text-center rounded-xl border hidden">
+        <p class="text-xs text-slate-600 font-bold mb-1">Transfer E-Wallet KantinKu:</p>
+        <p class="text-sm font-extrabold text-brand-600">0812-3456-7890 (DANA / OVO / GoPay)</p>
+      </div>
+
+      <div id="payment-box-cash" class="bg-slate-50 p-4 text-center rounded-xl border hidden">
+        <p class="text-xs text-slate-600 font-bold">Bayar Langsung Di Kasir Stan Kantin</p>
+        <p class="text-[11px] text-slate-500 mt-1">Tunjukkan nota transaksi setelah konfirmasi.</p>
+      </div>
+
+      <input type="text" id="customer-name" placeholder="Nama Pemesan / Nomor Meja" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm">
+
+      <button onclick="processOrderSubmit()" class="w-full py-3 bg-emerald-600 text-white font-bold rounded-xl">Konfirmasi & Bayar Sekarang</button>
+    </div>
+  </div>
+
+  <!-- RECEIPT MODAL -->
+  <div id="receipt-modal" class="fixed inset-0 z-50 bg-slate-900/60 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 text-center">
+      <h3 class="text-xl font-bold text-slate-800">Pesanan Berhasil Dibuat!</h3>
+      <div id="receipt-content" class="bg-slate-50 p-4 border border-dashed rounded-xl text-left font-mono text-xs space-y-2"></div>
+      <button onclick="closeReceiptModal()" class="w-full py-2.5 bg-brand-500 text-white font-bold rounded-xl">Selesai</button>
+    </div>
+  </div>
+
+  <script>
+    let state = { menus: [], cart: [], orders: [], searchQuery: '', selectedPayment: 'qris' };
+
+    function initData() {
+      fetch('/api/menus')
+        .then(res => res.json())
+        .then(data => {
+          const list = Array.isArray(data) ? data : (data.data || data.menus || []);
+          state.menus = list.map(item => ({
+            id: String(item.id || Math.random()),
+            name: item.name || item.nama_menu,
+            price: Number(item.price || item.harga || 0),
+            image: item.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80'
+          }));
+          renderCustomerView();
+          renderAdminOrders();
+        })
+        .catch(() => {
+          state.menus = [
+            { id: '1', name: 'Nasi Goreng Spesial', price: 18000, image: 'https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=500&q=80' },
+            { id: '2', name: 'Ayam Geprek Matah', price: 16000, image: 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=500&q=80' }
+          ];
+          renderCustomerView();
+          renderAdminOrders();
+        });
+    }
+
+    function formatIDR(num) {
+      return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(num);
+    }
+
+    function handleSearch() {
+      state.searchQuery = document.getElementById('search-input').value.toLowerCase();
+      renderCustomerView();
+    }
+
+    function renderCustomerView() {
+      const container = document.getElementById('menu-grid');
+      
+      const filteredMenus = state.menus.filter(m => m.name.toLowerCase().includes(state.searchQuery));
+
+      if (filteredMenus.length === 0) {
+        container.innerHTML = `<p class="col-span-full text-center text-slate-400 py-8">Menu makanan/minuman tidak ditemukan.</p>`;
+        return;
+      }
+
+      container.innerHTML = filteredMenus.map(item => {
+        const cartItem = state.cart.find(c => c.id === item.id);
+        const qty = cartItem ? cartItem.qty : 0;
+
+        return `
+          <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden p-4 space-y-3 shadow-xs">
+            <img src="${item.image}" class="w-full h-36 object-cover rounded-xl bg-slate-100">
+            <h3 class="font-bold text-slate-800 text-sm">${item.name}</h3>
+            <p class="font-extrabold text-brand-600 text-base">${formatIDR(item.price)}</p>
+
+            <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+              <span class="text-xs text-slate-400 font-medium">Jumlah Porsi:</span>
+              <div class="flex items-center gap-2 bg-slate-100 p-1 rounded-xl">
+                <button onclick="updateQty('${item.id}', -1)" class="w-7 h-7 bg-white rounded-lg font-bold text-slate-700 shadow-xs hover:bg-slate-200">-</button>
+                <span class="font-bold text-xs px-1">${qty}</span>
+                <button onclick="updateQty('${item.id}', 1)" class="w-7 h-7 bg-brand-500 text-white rounded-lg font-bold shadow-xs hover:bg-brand-600">+</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function updateQty(id, delta) {
+      const item = state.menus.find(m => m.id === id);
+      if (!item) return;
+
+      const cartItem = state.cart.find(c => c.id === id);
+      if (cartItem) {
+        cartItem.qty += delta;
+        if (cartItem.qty <= 0) {
+          state.cart = state.cart.filter(c => c.id !== id);
+        }
+      } else if (delta > 0) {
+        state.cart.push({ ...item, qty: 1 });
+      }
+
+      updateCartBadge();
+      renderCustomerView();
+      renderCartDrawer();
+    }
+
+    function updateCartBadge() {
+      const totalQty = state.cart.reduce((sum, i) => sum + i.qty, 0);
+      const badge = document.getElementById('cart-badge-count');
+      if (totalQty > 0) {
+        badge.textContent = totalQty;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+    }
+
+    function toggleCartDrawer(open) {
+      const drawer = document.getElementById('cart-drawer');
+      const backdrop = document.getElementById('cart-drawer-backdrop');
+      if (open) {
+        drawer.classList.remove('translate-x-full');
+        backdrop.classList.remove('hidden');
+      } else {
+        drawer.classList.add('translate-x-full');
+        backdrop.classList.add('hidden');
+      }
+    }
+
+    function renderCartDrawer() {
+      const container = document.getElementById('cart-items-container');
+      let total = 0;
+      if (state.cart.length === 0) {
+        container.innerHTML = `<p class="text-center text-slate-400 text-xs py-8">Keranjang belanja masih kosong.</p>`;
+        document.getElementById('cart-total').textContent = 'Rp 0';
+        return;
+      }
+
+      container.innerHTML = state.cart.map(item => {
+        const itemTotal = item.price * item.qty;
+        total += itemTotal;
+        return `
+          <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
+            <div>
+              <p class="font-bold text-xs text-slate-800">${item.name}</p>
+              <p class="text-[11px] text-slate-500">${formatIDR(item.price)} x ${item.qty}</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-xs text-brand-600 mr-2">${formatIDR(itemTotal)}</span>
+              <button onclick="updateQty('${item.id}', -1)" class="w-6 h-6 bg-slate-200 rounded text-xs font-bold">-</button>
+              <span class="text-xs font-bold">${item.qty}</span>
+              <button onclick="updateQty('${item.id}', 1)" class="w-6 h-6 bg-brand-500 text-white rounded text-xs font-bold">+</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+      document.getElementById('cart-total').textContent = formatIDR(total);
+    }
+
+    function setPaymentMethod(method) {
+      state.selectedPayment = method;
+      ['qris', 'ewallet', 'cash'].forEach(m => {
+        const btn = document.getElementById(`pay-${m}`);
+        const box = document.getElementById(`payment-box-${m}`);
+        if (m === method) {
+          btn.className = 'p-3 border-2 border-brand-500 bg-brand-50 rounded-xl font-bold text-xs text-brand-700';
+          box.classList.remove('hidden');
+        } else {
+          btn.className = 'p-3 border border-slate-200 rounded-xl font-bold text-xs text-slate-600';
+          box.classList.add('hidden');
+        }
+      });
+    }
+
+    function openPaymentModal() {
+      if (state.cart.length === 0) {
+        alert('Keranjang belanja masih kosong!');
+        return;
+      }
+      document.getElementById('payment-modal').classList.remove('hidden');
+    }
+
+    function closePaymentModal() { document.getElementById('payment-modal').classList.add('hidden'); }
+
+    function processOrderSubmit() {
+      const name = document.getElementById('customer-name').value || 'Mahasiswa (Anonim)';
+      let total = 0;
+
+      const orderItems = state.cart.map(i => {
+        const itemTotal = i.price * i.qty;
+        total += itemTotal;
+        return { name: i.name, qty: i.qty, price: i.price, itemTotal };
+      });
+
+      const newOrder = {
+        id: 'ORD-' + Math.floor(1000 + Math.random() * 9000),
+        customerName: name,
+        paymentMethod: state.selectedPayment.toUpperCase(),
+        total: total,
+        status: 'Diproses',
+        time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB',
+        items: orderItems
+      };
+
+      state.orders.unshift(newOrder);
+
+      const itemsHtml = orderItems.map(i => `
+        <div class="flex justify-between">
+          <span>${i.name} (${i.qty}x)</span>
+          <span>${formatIDR(i.itemTotal)}</span>
+        </div>
+      `).join('');
+
+      const receipt = document.getElementById('receipt-content');
+      receipt.innerHTML = `
+        <div class="text-center font-bold pb-2 border-b">KANTINKU DIGITAL</div>
+        <p><b>ID Pesanan:</b> ${newOrder.id}</p>
+        <p><b>Pemesan:</b> ${newOrder.customerName}</p>
+        <p><b>Metode:</b> ${newOrder.paymentMethod}</p>
+        <div class="border-t border-b py-2 my-2 space-y-1">${itemsHtml}</div>
+        <div class="flex justify-between font-bold"><span>TOTAL:</span><span>${formatIDR(total)}</span></div>
+        <p class="text-center text-[10px] text-slate-400 mt-2">-- STATUS: LUNAS --</p>
+      `;
+
+      closePaymentModal();
+      toggleCartDrawer(false);
+      document.getElementById('receipt-modal').classList.remove('hidden');
+
+      state.cart = [];
+      updateCartBadge();
+      renderCustomerView();
+      renderCartDrawer();
+      renderAdminOrders();
+    }
+
+    function updateOrderStatus(id, newStatus) {
+      const order = state.orders.find(o => o.id === id);
+      if (order) {
+        order.status = newStatus;
+        renderAdminOrders();
+      }
+    }
+
+    function deleteOrder(id) {
+      state.orders = state.orders.filter(o => o.id !== id);
+      renderAdminOrders();
+    }
+
+    function renderAdminOrders() {
+      const container = document.getElementById('admin-orders-container');
+      if (!container) return;
+
+      if (state.orders.length === 0) {
+        container.innerHTML = `<p class="text-slate-400 text-xs py-4 text-center">Belum ada pesanan masuk.</p>`;
+        return;
+      }
+
+      container.innerHTML = state.orders.map(order => {
+        const isSelesai = order.status === 'Selesai';
+        const statusBadgeColor = isSelesai ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800';
+
+        return `
+          <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 space-y-3">
+            <div class="flex justify-between items-center border-b pb-2">
+              <div>
+                <span class="font-bold text-xs text-slate-800">${order.id}</span>
+                <span class="text-[10px] ${statusBadgeColor} px-2 py-0.5 rounded-full font-semibold ml-2">${order.status}</span>
+              </div>
+              <span class="text-xs text-slate-500">${order.time}</span>
+            </div>
+            <div class="text-xs space-y-1">
+              <p><b>Pemesan:</b> ${order.customerName}</p>
+              <p><b>Metode:</b> ${order.paymentMethod}</p>
+              <div class="bg-white p-2 rounded-lg border border-slate-100 space-y-1 mt-1">
+                ${order.items.map(i => `<div class="flex justify-between text-[11px]"><span>${i.name} (${i.qty}x)</span><span>${formatIDR(i.itemTotal)}</span></div>`).join('')}
+              </div>
+              <p class="font-bold text-right text-brand-600 mt-1">Total: ${formatIDR(order.total)}</p>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-2 border-t border-slate-200">
+              ${!isSelesai ? `
+                <button onclick="updateOrderStatus('${order.id}', 'Selesai')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg transition-colors">
+                  <i class="fa-solid fa-check mr-1"></i> Tandai Selesai
+                </button>
+              ` : `
+                <span class="text-xs text-emerald-600 font-bold self-center mr-auto">✓ Pesanan Selesai</span>
+              `}
+              <button onclick="deleteOrder('${order.id}')" class="px-3 py-1.5 bg-slate-200 hover:bg-red-500 hover:text-white text-slate-600 font-bold text-xs rounded-lg transition-colors">
+                <i class="fa-solid fa-trash mr-1"></i> Hapus
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function closeReceiptModal() { document.getElementById('receipt-modal').classList.add('hidden'); }
+
+    function switchView(view) {
+      document.getElementById('customer-view').classList.toggle('hidden', view !== 'customer');
+      document.getElementById('admin-view').classList.toggle('hidden', view !== 'admin');
+
+      const btnCustomer = document.getElementById('btn-role-customer');
+      const btnAdmin = document.getElementById('btn-role-admin');
+
+      if (view === 'customer') {
+        btnCustomer.className = 'px-3 py-1.5 rounded-lg font-medium text-slate-700 bg-white shadow-xs';
+        btnAdmin.className = 'px-3 py-1.5 rounded-lg font-medium text-slate-500';
+      } else {
+        btnAdmin.className = 'px-3 py-1.5 rounded-lg font-medium text-slate-700 bg-white shadow-xs';
+        btnCustomer.className = 'px-3 py-1.5 rounded-lg font-medium text-slate-500';
+        renderAdminOrders();
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', initData);
+  </script>
+</body>
+</html>
