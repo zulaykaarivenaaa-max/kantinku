@@ -4,8 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>KantinKu - Sistem Informasi Kantin Modern</title>
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts: Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -14,236 +17,949 @@
     tailwind.config = {
       theme: {
         extend: {
-          fontFamily: { sans: ['Inter', 'sans-serif'] },
-          colors: { brand: { 50: '#fff7ed', 100: '#ffedd5', 500: '#f97316', 600: '#ea580c', 700: '#c2410c' } }
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#fff7ed',
+              100: '#ffedd5',
+              500: '#f97316',
+              600: '#ea580c',
+              700: '#c2410c',
+            }
+          }
         }
       }
     }
   </script>
+  <style>
+    /* Custom scrollbar for better aesthetics */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
 </head>
-<body class="flex flex-col min-h-screen font-sans text-slate-800 antialiased">
+<body class="flex flex-col min-h-screen font-sans text-slate-800 antialiased selection:bg-brand-500 selection:text-white">
 
+  <!-- ACCESSIBILITY: Skip to main content -->
+  <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:p-3 focus:bg-brand-600 focus:text-white focus:rounded-md">
+    Lompati ke konten utama
+  </a>
+
+  <!-- NOTIFICATION TOAST -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none" aria-live="polite"></div>
+
+  <!-- HEADER & NAVBAR -->
   <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-16 gap-2">
+      <div class="flex items-center justify-between h-16 gap-2 sm:gap-4">
+        
+        <!-- Logo Brand -->
         <div class="flex items-center gap-3">
-          <a href="#" onclick="switchView('customer')" class="flex items-center gap-2 group p-1">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-amber-500 flex items-center justify-center text-white shadow-md">
+          <a href="#" onclick="switchView('customer')" class="flex items-center gap-2 group focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 rounded-lg p-1" aria-label="KantinKu - Beranda">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-amber-500 flex items-center justify-center text-white shadow-md shadow-brand-500/20 group-hover:scale-105 transition-transform">
               <i class="fa-solid font-bold fa-utensils text-lg"></i>
             </div>
-            <div>
+            <div class="hidden sm:block">
               <span class="text-xl font-bold bg-gradient-to-r from-brand-600 to-amber-600 bg-clip-text text-transparent">KantinKu</span>
+              <span class="block text-[10px] text-slate-500 font-medium tracking-wide -mt-1">E-CANTEEN SYSTEM</span>
             </div>
           </a>
+          
+          <!-- Status Kantin Badge -->
+          <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80 shadow-xs">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span id="canteen-status-text">Kantin Buka</span>
+          </div>
         </div>
 
-        <div class="flex items-center gap-3">
-          <div class="bg-slate-100 p-1 rounded-xl flex items-center border border-slate-200 text-xs">
-            <button id="btn-role-customer" onclick="switchView('customer')" class="px-3 py-1.5 rounded-lg font-medium text-slate-700 bg-white shadow-xs">Mahasiswa</button>
-            <button id="btn-role-admin" onclick="switchView('admin')" class="px-3 py-1.5 rounded-lg font-medium text-slate-500">Panel Admin</button>
+        <!-- Global Navigation Controls -->
+        <div class="flex items-center gap-2 sm:gap-3">
+          
+          <!-- Role Switcher Button -->
+          <div class="bg-slate-100 p-1 rounded-xl flex items-center border border-slate-200/80 text-xs sm:text-sm">
+            <button id="btn-role-customer" onclick="switchView('customer')" class="px-3 py-1.5 rounded-lg font-medium transition-all duration-200 flex items-center gap-1.5 text-slate-700 bg-white shadow-xs focus:outline-none focus:ring-2 focus:ring-brand-500" aria-label="Tampilan Mahasiswa">
+              <i class="fa-solid fa-user text-xs"></i>
+              <span class="hidden md:inline">Mahasiswa</span>
+            </button>
+            <button id="btn-role-admin" onclick="switchView('admin')" class="px-3 py-1.5 rounded-lg font-medium transition-all duration-200 flex items-center gap-1.5 text-slate-500 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500" aria-label="Panel Admin Penjual">
+              <i class="fa-solid fa-store text-xs"></i>
+              <span class="hidden md:inline">Panel Admin</span>
+            </button>
           </div>
 
-          <button onclick="toggleCartDrawer(true)" class="relative p-2.5 rounded-xl bg-slate-100 text-slate-700">
+          <!-- Cart Toggle Button (Mahasiswa View Only) -->
+          <button id="btn-cart-toggle" onclick="toggleCartDrawer(true)" class="relative p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500" aria-label="Buka Keranjang Belanja">
             <i class="fa-solid fa-cart-shopping text-lg"></i>
-            <span id="cart-badge-count" class="absolute -top-1.5 -right-1.5 bg-brand-600 text-white text-[11px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white hidden">0</span>
+            <span id="cart-badge-count" class="absolute -top-1.5 -right-1.5 bg-brand-600 text-white text-[11px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white shadow-xs hidden">0</span>
           </button>
         </div>
+
       </div>
     </div>
   </header>
 
-  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-    <!-- VIEW MAHASISWA -->
-    <div id="customer-view" class="space-y-6">
-      <div class="bg-gradient-to-r from-slate-900 to-brand-950 text-white p-6 rounded-2xl">
-        <h1 class="text-2xl font-bold">Pesan Makanan Tanpa Antri Di Kantin Kampus</h1>
-        <p class="text-slate-300 text-sm mt-1">Pilih menu, tentukan jumlah porsi, dan bayar dengan metode pembayaran favoritmu!</p>
-      </div>
-
-      <!-- SEARCH BAR -->
-      <div class="relative w-full max-w-md">
-        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-          <i class="fa-solid fa-magnifying-glass"></i>
+  <!-- MAIN CONTENT CONTAINER -->
+  <main id="main-content" class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    
+    <!-- ========================================== -->
+    <!-- VIEW 1: MAHASISWA / PENGUNJUNG VIEW        -->
+    <!-- ========================================== -->
+    <div id="customer-view" class="space-y-8">
+      
+      <!-- Promo Banner Section -->
+      <section aria-label="Promosi Kantin" class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-brand-950 to-slate-900 text-white p-6 sm:p-8 shadow-xl">
+        <div class="absolute -right-10 -bottom-10 opacity-10 text-white text-9xl pointer-events-none">
+          <i class="fa-solid fa-hamburger"></i>
         </div>
-        <input 
-          type="text" 
-          id="search-input" 
-          oninput="handleSearch()" 
-          placeholder="Cari makanan atau minuman (contoh: Nasi, Es Teh)..." 
-          class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-xs"
-        >
-      </div>
+        <div class="relative z-10 max-w-2xl space-y-3">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-brand-500/20 text-brand-300 border border-brand-500/30">
+            <i class="fa-solid fa-bolt text-amber-400"></i> Diskon Mahasiswa Akhir Bulan
+          </span>
+          <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight leading-tight">
+            Pesan Makanan Tanpa Antri Di Kantin Kampus
+          </h1>
+          <p class="text-slate-300 text-sm sm:text-base">
+            Pilih menu kesukaanmu, bayar secara instan via QRIS, dan ambil pesananmu langsung saat siap!
+          </p>
+        </div>
+      </section>
 
-      <!-- GRID MENU -->
-      <div id="menu-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+      <!-- Search & Category Filters -->
+      <section aria-label="Pencarian dan Filter Menu" class="space-y-4">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+          <!-- Search Bar -->
+          <div class="relative w-full md:w-96">
+            <label for="search-input" class="sr-only">Cari menu makanan atau minuman</label>
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+              <i class="fa-solid fa-magnifying-glass"></i>
+            </div>
+            <input type="text" id="search-input" oninput="handleSearchFilter()" placeholder="Cari Ayam Geprek, Es Teh, Dimsum..." class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 shadow-xs transition-all">
+          </div>
+
+          <!-- Stalls Selection Quick Pills -->
+          <div id="stall-filter-container" class="w-full md:w-auto flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-none">
+            <!-- Dynamically populated stall pills -->
+          </div>
+        </div>
+
+        <!-- Category Pills -->
+        <div id="category-filter-container" class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+          <!-- Dynamically populated category buttons -->
+        </div>
+      </section>
+
+      <!-- Bestseller Menu Carousel / Highlight -->
+      <section aria-label="Menu Terpopuler" class="space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+            <i class="fa-solid fa-fire text-brand-500"></i> Menu Terfavorit
+          </h2>
+          <span class="text-xs text-slate-500">Paling Sering Dipesan</span>
+        </div>
+        <div id="bestsellers-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Bestsellers rendered here -->
+        </div>
+      </section>
+
+      <!-- Main Food Menu Grid -->
+      <section aria-label="Daftar Menu Kantin Utama" class="space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+          <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+            <i class="fa-solid fa-utensils text-slate-600"></i> Semua Menu Kantin
+          </h2>
+          <span id="menu-count-badge" class="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-medium">0 Menu</span>
+        </div>
+
+        <div id="menu-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <!-- Menu items dynamically rendered here -->
+        </div>
+
+        <!-- Empty state for search -->
+        <div id="empty-menu-state" class="hidden text-center py-12 bg-white rounded-2xl border border-slate-200 p-6 space-y-3">
+          <div class="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto text-2xl">
+            <i class="fa-solid fa-utensils-slash"></i>
+          </div>
+          <h3 class="font-bold text-slate-800 text-lg">Menu Tidak Ditemukan</h3>
+          <p class="text-slate-500 text-sm max-w-md mx-auto">Coba cari dengan kata kunci lain atau ubah filter kategori menu di atas.</p>
+          <button onclick="resetFilters()" class="px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-xl text-sm font-medium transition-colors">
+            Reset Filter
+          </button>
+        </div>
+      </section>
+
     </div>
 
-    <!-- VIEW PANEL ADMIN -->
-    <div id="admin-view" class="space-y-6 hidden">
-      <div class="bg-slate-900 text-white p-6 rounded-2xl flex justify-between items-center">
-        <h1 class="text-2xl font-bold">Panel Admin Kantin</h1>
+    <!-- ========================================== -->
+    <!-- VIEW 2: PANEL ADMIN / PEMILIK STAN        -->
+    <!-- ========================================== -->
+    <div id="admin-view" class="space-y-8 hidden">
+      
+      <!-- Admin Top Banner -->
+      <div class="bg-slate-900 text-white p-6 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-lg">
+        <div>
+          <span class="text-xs font-bold text-brand-400 uppercase tracking-wider">Dashboard Pengelola</span>
+          <h1 class="text-2xl font-bold">Panel Admin Stan Kantin</h1>
+          <p class="text-slate-400 text-sm">Kelola daftar menu, atur ketersediaan stok, dan pantau pesanan mahasiswa secara realtime.</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <button onclick="openMenuModal()" class="px-4 py-2.5 bg-brand-500 hover:bg-brand-600 text-white font-medium rounded-xl text-sm transition-colors flex items-center gap-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-400">
+            <i class="fa-solid fa-plus"></i> Tambah Menu Baru
+          </button>
+        </div>
       </div>
-      <div class="bg-white p-5 rounded-2xl border border-slate-200">
-        <h2 class="font-bold text-lg mb-4">Antrean Pesanan Masuk</h2>
-        <div id="admin-orders-container" class="space-y-3"></div>
+
+      <!-- Admin Quick Analytics Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl font-bold">
+            <i class="fa-solid fa-receipt"></i>
+          </div>
+          <div>
+            <span class="text-xs text-slate-500 font-medium">Total Pesanan Hari Ini</span>
+            <h3 id="stat-total-orders" class="text-2xl font-bold text-slate-800">0</h3>
+          </div>
+        </div>
+        
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl font-bold">
+            <i class="fa-solid fa-money-bill-wave"></i>
+          </div>
+          <div>
+            <span class="text-xs text-slate-500 font-medium">Estimasi Pendapatan</span>
+            <h3 id="stat-total-revenue" class="text-2xl font-bold text-slate-800">Rp 0</h3>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl font-bold">
+            <i class="fa-solid fa-clock"></i>
+          </div>
+          <div>
+            <span class="text-xs text-slate-500 font-medium">Pesanan Perlu Diproses</span>
+            <h3 id="stat-pending-orders" class="text-2xl font-bold text-amber-600">0</h3>
+          </div>
+        </div>
       </div>
+
+      <!-- Section: Real-time Order Queue -->
+      <section aria-label="Antrean Pesanan Masuk" class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div>
+            <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-bell text-amber-500"></i> Antrean Pesanan Masuk
+            </h2>
+            <p class="text-xs text-slate-500">Pesanan dari mahasiswa yang membutuhkan tindakan pengelola stan</p>
+          </div>
+          <button onclick="renderAdminOrders()" class="text-xs text-slate-600 hover:text-brand-600 flex items-center gap-1 font-medium bg-slate-100 px-3 py-1.5 rounded-lg">
+            <i class="fa-solid fa-rotate-right"></i> Refresh
+          </button>
+        </div>
+
+        <div id="admin-orders-container" class="space-y-4">
+          <!-- Admin Orders will be dynamically injected here -->
+        </div>
+      </section>
+
+      <!-- Section: Menu Management -->
+      <section aria-label="Kelola Daftar Menu" class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div>
+            <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-cubes text-brand-500"></i> Kelola Menu & Stok Stan
+            </h2>
+            <p class="text-xs text-slate-500">Ubah harga, deskripsi, atau ubah status stok ketersediaan barang</p>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm text-slate-600">
+            <thead class="bg-slate-50 text-slate-700 uppercase text-[11px] font-semibold border-b border-slate-200">
+              <tr>
+                <th class="py-3 px-4">Menu</th>
+                <th class="py-3 px-4">Stan</th>
+                <th class="py-3 px-4">Kategori</th>
+                <th class="py-3 px-4">Harga</th>
+                <th class="py-3 px-4">Status Stok</th>
+                <th class="py-3 px-4 text-right">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="admin-menu-table-body" class="divide-y divide-slate-100">
+              <!-- Menu items table rows -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
     </div>
+
   </main>
 
-  <!-- CART DRAWER -->
-  <div id="cart-drawer-backdrop" class="fixed inset-0 bg-slate-900/60 z-40 hidden" onclick="toggleCartDrawer(false)"></div>
-  <aside id="cart-drawer" class="fixed top-0 right-0 h-full w-full max-w-md bg-white z-50 shadow-2xl flex flex-col transform translate-x-full transition-transform">
-    <div class="p-4 border-b flex justify-between items-center bg-slate-50">
-      <h2 class="font-bold text-lg">Keranjang Belanja</h2>
-      <button onclick="toggleCartDrawer(false)" class="text-slate-500"><i class="fa-solid fa-xmark text-xl"></i></button>
-    </div>
-    <div id="cart-items-container" class="flex-grow overflow-y-auto p-4 space-y-3"></div>
-    <div class="p-4 border-t bg-slate-50 space-y-3">
-      <div class="flex justify-between font-bold text-lg">
-        <span>Total Bayar:</span>
-        <span id="cart-total" class="text-brand-600">Rp 0</span>
+  <!-- CART DRAWER / MODAL -->
+  <div id="cart-drawer-backdrop" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-40 transition-opacity duration-300 opacity-0 pointer-events-none" onclick="toggleCartDrawer(false)"></div>
+  <aside id="cart-drawer" class="fixed top-0 right-0 h-full w-full max-w-md bg-white z-50 shadow-2xl flex flex-col transform translate-x-full transition-transform duration-300 ease-in-out" aria-label="Keranjang Belanja">
+    <!-- Header -->
+    <div class="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+      <div class="flex items-center gap-2">
+        <i class="fa-solid fa-bag-shopping text-brand-600 text-xl"></i>
+        <h2 class="text-lg font-bold text-slate-800">Keranjang Belanja</h2>
       </div>
-      <button onclick="openPaymentModal()" class="w-full py-3 bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-xl">Lanjut Ke Pembayaran</button>
+      <button onclick="toggleCartDrawer(false)" class="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500" aria-label="Tutup keranjang">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+    </div>
+
+    <!-- Body: Cart Items List -->
+    <div id="cart-items-container" class="flex-grow overflow-y-auto p-4 sm:p-5 space-y-4">
+      <!-- Items dynamically populated -->
+    </div>
+
+    <!-- Empty Cart State -->
+    <div id="cart-empty-state" class="hidden flex-grow flex flex-col items-center justify-center p-6 text-center space-y-3">
+      <div class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center text-slate-300 text-3xl">
+        <i class="fa-solid fa-cart-arrow-down"></i>
+      </div>
+      <p class="font-bold text-slate-700">Keranjang Belanja Kosong</p>
+      <p class="text-xs text-slate-500 max-w-xs">Anda belum menambahkan makanan atau minuman ke dalam keranjang belanja.</p>
+    </div>
+
+    <!-- Footer: Dining Option & Checkout -->
+    <div id="cart-footer" class="p-4 sm:p-5 border-t border-slate-200 bg-slate-50 space-y-4">
+      <!-- Fulfillment Options -->
+      <div class="space-y-2">
+        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide">Metode Pemesanan</label>
+        <div class="grid grid-cols-2 gap-2">
+          <label class="border border-slate-200 bg-white p-2.5 rounded-xl flex items-center gap-2 cursor-pointer has-[:checked]:border-brand-500 has-[:checked]:bg-brand-50/50 transition-all">
+            <input type="radio" name="order-type" value="takeaway" checked onchange="toggleTableInput(false)" class="text-brand-600 focus:ring-brand-500">
+            <span class="text-xs font-semibold text-slate-700">Ambil Sendiri</span>
+          </label>
+          <label class="border border-slate-200 bg-white p-2.5 rounded-xl flex items-center gap-2 cursor-pointer has-[:checked]:border-brand-500 has-[:checked]:bg-brand-50/50 transition-all">
+            <input type="radio" name="order-type" value="dinein" onchange="toggleTableInput(true)" class="text-brand-600 focus:ring-brand-500">
+            <span class="text-xs font-semibold text-slate-700">Antar ke Meja</span>
+          </label>
+        </div>
+
+        <!-- Table Number Input (Hidden by default) -->
+        <div id="table-number-wrapper" class="hidden mt-2">
+          <label for="table-number" class="sr-only">Nomor Meja</label>
+          <input type="text" id="table-number" placeholder="Masukkan Nomor Meja (Contoh: M-12)" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none">
+        </div>
+      </div>
+
+      <!-- Summary Price Calculation -->
+      <div class="space-y-1.5 text-xs text-slate-600 border-t border-slate-200/80 pt-3">
+        <div class="flex justify-between">
+          <span>Subtotal</span>
+          <span id="cart-subtotal" class="font-medium">Rp 0</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Biaya Layanan Sistem</span>
+          <span id="cart-fee" class="font-medium">Rp 1.000</span>
+        </div>
+        <div class="flex justify-between font-bold text-sm text-slate-900 border-t border-slate-200 pt-2">
+          <span>Total Pembayaran</span>
+          <span id="cart-total" class="text-brand-600">Rp 0</span>
+        </div>
+      </div>
+
+      <!-- Checkout CTA Button -->
+      <button onclick="openPaymentModal()" id="btn-checkout" class="w-full py-3 bg-brand-500 hover:bg-brand-600 active:scale-[0.99] text-white font-bold rounded-xl transition-all shadow-md shadow-brand-500/20 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-brand-500">
+        <span>Lanjut ke Pembayaran</span>
+        <i class="fa-solid fa-arrow-right text-xs"></i>
+      </button>
     </div>
   </aside>
 
-  <!-- PAYMENT MODAL -->
-  <div id="payment-modal" class="fixed inset-0 z-50 bg-slate-900/60 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4">
-      <div class="flex justify-between items-center border-b pb-2">
-        <h3 class="font-bold text-lg">Pilih Metode Pembayaran</h3>
-        <button onclick="closePaymentModal()" class="text-slate-400"><i class="fa-solid fa-xmark text-lg"></i></button>
-      </div>
-
-      <div class="grid grid-cols-3 gap-2">
-        <button type="button" onclick="setPaymentMethod('qris')" id="pay-qris" class="p-3 border-2 border-brand-500 bg-brand-50 rounded-xl font-bold text-xs text-brand-700">QRIS</button>
-        <button type="button" onclick="setPaymentMethod('ewallet')" id="pay-ewallet" class="p-3 border border-slate-200 rounded-xl font-bold text-xs text-slate-600">E-Wallet</button>
-        <button type="button" onclick="setPaymentMethod('cash')" id="pay-cash" class="p-3 border border-slate-200 rounded-xl font-bold text-xs text-slate-600">Tunai / Cash</button>
-      </div>
-
-      <div id="payment-box-qris" class="bg-slate-50 p-4 text-center rounded-xl border">
-        <p class="text-xs text-slate-500 mb-2">Scan QRIS menggunakan aplikasi E-Wallet / Bank</p>
-        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=KantinKu-Payment" class="w-32 h-32 mx-auto">
-      </div>
-
-      <div id="payment-box-ewallet" class="bg-slate-50 p-4 text-center rounded-xl border hidden">
-        <p class="text-xs text-slate-600 font-bold mb-1">Transfer E-Wallet KantinKu:</p>
-        <p class="text-sm font-extrabold text-brand-600">0812-3456-7890 (DANA / OVO / GoPay)</p>
-      </div>
-
-      <div id="payment-box-cash" class="bg-slate-50 p-4 text-center rounded-xl border hidden">
-        <p class="text-xs text-slate-600 font-bold">Bayar Langsung Di Kasir Stan Kantin</p>
-        <p class="text-[11px] text-slate-500 mt-1">Tunjukkan nota transaksi setelah konfirmasi.</p>
-      </div>
-
-      <input type="text" id="customer-name" placeholder="Nama Pemesan / Nomor Meja" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm">
-
-      <button onclick="processOrderSubmit()" class="w-full py-3 bg-emerald-600 text-white font-bold rounded-xl">Konfirmasi & Bayar Sekarang</button>
-    </div>
-  </div>
-
-  <!-- RECEIPT MODAL -->
-  <div id="receipt-modal" class="fixed inset-0 z-50 bg-slate-900/60 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 text-center">
-      <h3 class="text-xl font-bold text-slate-800">Pesanan Berhasil Dibuat!</h3>
-      <div id="receipt-content" class="bg-slate-50 p-4 border border-dashed rounded-xl text-left font-mono text-xs space-y-2"></div>
-      <button onclick="closeReceiptModal()" class="w-full py-2.5 bg-brand-500 text-white font-bold rounded-xl">Selesai</button>
-    </div>
-  </div>
-
-  <script>
-    let state = { menus: [], cart: [], orders: [], searchQuery: '', selectedPayment: 'qris' };
-
-    function initData() {
-      fetch('/api/menus')
-        .then(res => res.json())
-        .then(data => {
-          const list = Array.isArray(data) ? data : (data.data || data.menus || []);
-          state.menus = list.map(item => ({
-            id: String(item.id || Math.random()),
-            name: item.name || item.nama_menu,
-            price: Number(item.price || item.harga || 0),
-            image: item.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80'
-          }));
-          renderCustomerView();
-          renderAdminOrders();
-        })
-        .catch(() => {
-          state.menus = [
-            { id: '1', name: 'Nasi Goreng Spesial', price: 18000, image: 'https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=500&q=80' },
-            { id: '2', name: 'Ayam Geprek Matah', price: 16000, image: 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=500&q=80' }
-          ];
-          renderCustomerView();
-          renderAdminOrders();
-        });
-    }
-
-    function formatIDR(num) {
-      return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(num);
-    }
-
-    function handleSearch() {
-      state.searchQuery = document.getElementById('search-input').value.toLowerCase();
-      renderCustomerView();
-    }
-
-    function renderCustomerView() {
-      const container = document.getElementById('menu-grid');
+  <!-- MODAL: PAYMENT SIMULATION -->
+  <div id="payment-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-6 animate-in fade-in zoom-in-95 duration-200">
       
-      const filteredMenus = state.menus.filter(m => m.name.toLowerCase().includes(state.searchQuery));
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 class="font-bold text-slate-800 text-lg flex items-center gap-2">
+          <i class="fa-solid fa-wallet text-brand-500"></i> Pembayaran Pesanan
+        </h3>
+        <button onclick="closePaymentModal()" class="text-slate-400 hover:text-slate-600">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
 
-      if (filteredMenus.length === 0) {
-        container.innerHTML = `<p class="col-span-full text-center text-slate-400 py-8">Menu makanan/minuman tidak ditemukan.</p>`;
-        return;
+      <!-- Select Payment Method -->
+      <div class="space-y-3">
+        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wide">Pilih Metode Pembayaran</label>
+        <div class="grid grid-cols-3 gap-2">
+          <button type="button" onclick="selectPaymentMethod('qris')" id="pay-qris" class="p-3 border-2 border-brand-500 bg-brand-50/50 rounded-xl text-center font-semibold text-xs text-brand-700 flex flex-col items-center gap-1 transition-all">
+            <i class="fa-solid fa-qrcode text-lg"></i> QRIS
+          </button>
+          <button type="button" onclick="selectPaymentMethod('ewallet')" id="pay-ewallet" class="p-3 border border-slate-200 rounded-xl text-center font-semibold text-xs text-slate-600 flex flex-col items-center gap-1 hover:border-slate-300 transition-all">
+            <i class="fa-solid fa-mobile-screen-button text-lg"></i> E-Wallet
+          </button>
+          <button type="button" onclick="selectPaymentMethod('cash')" id="pay-cash" class="p-3 border border-slate-200 rounded-xl text-center font-semibold text-xs text-slate-600 flex flex-col items-center gap-1 hover:border-slate-300 transition-all">
+            <i class="fa-solid fa-money-bill-1 text-lg"></i> Tunai
+          </button>
+        </div>
+      </div>
+
+      <!-- Payment Visual Details -->
+      <div id="payment-details-qris" class="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-center space-y-2">
+        <p class="text-xs text-slate-500 font-medium">Scan QRIS menggunakan aplikasi E-Wallet / Mobile Banking</p>
+        <div class="bg-white p-3 inline-block rounded-xl border border-slate-200 shadow-xs">
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=KantinKu-Payment-Simulation" alt="QRIS Code Kantin" class="w-36 h-36 mx-auto rounded-md" onerror="this.onerror=null; this.src='https://placehold.co/150x150/ffffff/000000?text=QRIS+Simulasi';">
+        </div>
+        <p class="text-[11px] text-slate-400">NMI: ID102030405060 - Kantin Utama Kampus</p>
+      </div>
+
+      <!-- Customer Name Input -->
+      <div class="space-y-1">
+        <label for="customer-name" class="block text-xs font-semibold text-slate-700">Nama Pemesan / Nim</label>
+        <input type="text" id="customer-name" placeholder="Contoh: Budi (NIM 2201923)" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none">
+      </div>
+
+      <!-- Total Pay Highlight -->
+      <div class="flex items-center justify-between p-3 bg-slate-100 rounded-xl">
+        <span class="text-xs font-semibold text-slate-600">Total Yang Harus Dibayar:</span>
+        <span id="payment-modal-total" class="font-bold text-base text-brand-600">Rp 0</span>
+      </div>
+
+      <!-- Action buttons -->
+      <button onclick="processOrderSubmit()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2">
+        <i class="fa-solid fa-circle-check"></i> Konfirmasi & Bayar Sekarang
+      </button>
+
+    </div>
+  </div>
+
+  <!-- MODAL: DIGITAL RECEIPT / SUCCESS NOTIFICATION -->
+  <div id="receipt-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-200">
+      <div class="text-center space-y-2">
+        <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-2xl">
+          <i class="fa-solid fa-check"></i>
+        </div>
+        <h3 class="text-xl font-bold text-slate-800">Pesanan Berhasil Berhasil Dibuat!</h3>
+        <p class="text-xs text-slate-500">Tunjukkan nota digital ini saat mengambil makanan di stan.</p>
+      </div>
+
+      <div id="receipt-content" class="bg-slate-50 border border-dashed border-slate-300 rounded-2xl p-4 text-xs space-y-3 font-mono">
+        <!-- Dynamic receipt text inserted here -->
+      </div>
+
+      <button onclick="closeReceiptModal()" class="w-full py-2.5 bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-xl transition-colors">
+        Tutup & Selesai
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD / EDIT MENU ITEM (ADMIN) -->
+  <div id="menu-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 id="menu-modal-title" class="font-bold text-slate-800 text-lg">Tambah Menu Baru</h3>
+        <button onclick="closeMenuModal()" class="text-slate-400 hover:text-slate-600">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form id="menu-form" onsubmit="handleMenuFormSubmit(event)" class="space-y-3 text-xs">
+        <input type="hidden" id="form-menu-id">
+        
+        <div>
+          <label for="form-menu-name" class="block font-semibold text-slate-700 mb-1">Nama Menu</label>
+          <input type="text" id="form-menu-name" required placeholder="Contoh: Ayam Geprek Sambal Matah" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none">
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label for="form-menu-stall" class="block font-semibold text-slate-700 mb-1">Stan / Warung</label>
+            <select id="form-menu-stall" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none">
+              <option value="Stan Mbak Sri">Stan Mbak Sri</option>
+              <option value="Stan Mas Budi">Stan Mas Budi</option>
+              <option value="Kopi Kampus">Kopi Kampus</option>
+              <option value="Snack Corner">Snack Corner</option>
+            </select>
+          </div>
+          <div>
+            <label for="form-menu-category" class="block font-semibold text-slate-700 mb-1">Kategori</label>
+            <select id="form-menu-category" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none">
+              <option value="Makanan Berat">Makanan Berat</option>
+              <option value="Minuman">Minuman</option>
+              <option value="Camilan">Camilan</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label for="form-menu-price" class="block font-semibold text-slate-700 mb-1">Harga (IDR Rp)</label>
+            <input type="number" id="form-menu-price" required min="500" step="500" placeholder="15000" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none">
+          </div>
+          <div>
+            <label for="form-menu-rating" class="block font-semibold text-slate-700 mb-1">Rating Sederhana (1-5)</label>
+            <input type="number" id="form-menu-rating" min="1" max="5" step="0.1" value="4.8" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none">
+          </div>
+        </div>
+
+        <div>
+          <label for="form-menu-image" class="block font-semibold text-slate-700 mb-1">URL Gambar (Unsplash Placeholder)</label>
+          <input type="url" id="form-menu-image" placeholder="https://images.unsplash.com/..." class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none">
+        </div>
+
+        <div>
+          <label for="form-menu-desc" class="block font-semibold text-slate-700 mb-1">Deskripsi Ringkas</label>
+          <textarea id="form-menu-desc" rows="2" placeholder="Deskripsi rasa, porsi, atau bahan..." class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none"></textarea>
+        </div>
+
+        <div class="flex items-center gap-2 pt-1">
+          <input type="checkbox" id="form-menu-available" checked class="w-4 h-4 text-brand-600 rounded focus:ring-brand-500">
+          <label for="form-menu-available" class="font-semibold text-slate-700">Stok Tersedia (Ready)</label>
+        </div>
+
+        <div class="pt-3 flex gap-2">
+          <button type="button" onclick="closeMenuModal()" class="w-1/2 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl">Batal</button>
+          <button type="submit" class="w-1/2 py-2.5 bg-brand-500 hover:bg-brand-600 text-white font-semibold rounded-xl shadow-xs">Simpan Menu</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="bg-white border-t border-slate-200 mt-12 py-6 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto px-4 space-y-2">
+      <p class="font-medium text-slate-600">&copy; 2026 KantinKu - Sistem Informasi Kantin Berbasis Web. All rights reserved.</p>
+      <p>Dirancang untuk Kemudahan Transaksi Kantin Kampus & Sekolah | Ramah Aksesibilitas & Responsif</p>
+    </div>
+  </footer>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    // ==========================================
+    // INITIAL MOCK DATA
+    // ==========================================
+    const INITIAL_MENUS = [
+      {
+        id: 'm1',
+        name: 'Ayam Geprek Sambal Matah',
+        stall: 'Stan Mbak Sri',
+        category: 'Makanan Berat',
+        price: 18000,
+        rating: 4.9,
+        available: true,
+        image: 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=500&q=80',
+        desc: 'Ayam krispi renyah digeprek dengan serundeng khas & racikan sambal matah segar.',
+        bestseller: true
+      },
+      {
+        id: 'm2',
+        name: 'Nasi Goreng Kantin Spesial',
+        stall: 'Stan Mas Budi',
+        category: 'Makanan Berat',
+        price: 16000,
+        rating: 4.8,
+        available: true,
+        image: 'https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=500&q=80',
+        desc: 'Nasi goreng bumbu rempah melimpah dilengkapi telur ciplok, bakso, dan kerupuk.',
+        bestseller: true
+      },
+      {
+        id: 'm3',
+        name: 'Es Teh Manis Jumbo',
+        stall: 'Kopi Kampus',
+        category: 'Minuman',
+        price: 4000,
+        rating: 4.9,
+        available: true,
+        image: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&w=500&q=80',
+        desc: 'Es teh seduh alami penyegar dahaga porsi besar 500ml.',
+        bestseller: true
+      },
+      {
+        id: 'm4',
+        name: 'Dimsum Ayam Kukus (4pcs)',
+        stall: 'Snack Corner',
+        category: 'Camilan',
+        price: 15000,
+        rating: 4.7,
+        available: true,
+        image: 'https://images.unsplash.com/photo-1496116218417-1a781b1c416c?auto=format&fit=crop&w=500&q=80',
+        desc: 'Dimsum olahan daging ayam segar lembut disajikan dengan saus chili oil gurih.',
+        bestseller: true
+      },
+      {
+        id: 'm5',
+        name: 'Kopi Susu Gula Aren',
+        stall: 'Kopi Kampus',
+        category: 'Minuman',
+        price: 12000,
+        rating: 4.8,
+        available: true,
+        image: 'https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&w=500&q=80',
+        desc: 'Espresso robusta dipadukan dengan susu segar dan manisnya gula aren asli.',
+        bestseller: false
+      },
+      {
+        id: 'm6',
+        name: 'Roti Bakar Cokelat Keju',
+        stall: 'Snack Corner',
+        category: 'Camilan',
+        price: 12000,
+        rating: 4.6,
+        available: false, // Out of stock example
+        image: 'https://images.unsplash.com/photo-1584776296944-ab6fb57b0bdd?auto=format&fit=crop&w=500&q=80',
+        desc: 'Roti tawar tebal dioles mentega, cokelat lumer, dan keju parut melimpah.',
+        bestseller: false
+      },
+      {
+        id: 'm7',
+        name: 'Mie Goreng Dok-Dok Kampus',
+        stall: 'Stan Mas Budi',
+        category: 'Makanan Berat',
+        price: 14000,
+        rating: 4.7,
+        available: true,
+        image: 'https://images.unsplash.com/photo-1612927601601-6638404737ce?auto=format&fit=crop&w=500&q=80',
+        desc: 'Mie kuah nyemek kaya bumbu kuah kental dengan telur orak-arik dan sayuran.',
+        bestseller: false
+      }
+    ];
+
+    const INITIAL_ORDERS = [
+      {
+        id: 'ORD-9821',
+        customerName: 'Ahmad Rizky',
+        orderType: 'dinein',
+        tableNumber: 'M-04',
+        method: 'QRIS',
+        total: 35000,
+        status: 'Diproses', // 'Diproses', 'Siap Diambil', 'Selesai'
+        time: '12:15 WIB',
+        items: [
+          { name: 'Ayam Geprek Sambal Matah', qty: 1, price: 18000 },
+          { name: 'Dimsum Ayam Kukus (4pcs)', qty: 1, price: 15000 }
+        ]
+      }
+    ];
+
+    // ==========================================
+    // STATE MANAGEMENT
+    // ==========================================
+    let state = {
+      menus: [],
+      orders: [],
+      cart: [], // items: { menuId, qty }
+      currentView: 'customer', // 'customer' or 'admin'
+      searchQuery: '',
+      selectedCategory: 'Semua',
+      selectedStall: 'Semua Stan',
+      paymentMethod: 'qris'
+    };
+
+    // ==========================================
+    // DATA PERSISTENCE & UTILS
+    // ==========================================
+    function initData() {
+      // Load Menus
+      const savedMenus = localStorage.getItem('kantinku_menus');
+      if (savedMenus) {
+        state.menus = JSON.parse(savedMenus);
+      } else {
+        state.menus = INITIAL_MENUS;
+        saveMenusToStorage();
       }
 
-      container.innerHTML = filteredMenus.map(item => {
-        const cartItem = state.cart.find(c => c.id === item.id);
-        const qty = cartItem ? cartItem.qty : 0;
+      // Load Orders
+      const savedOrders = localStorage.getItem('kantinku_orders');
+      if (savedOrders) {
+        state.orders = JSON.parse(savedOrders);
+      } else {
+        state.orders = INITIAL_ORDERS;
+        saveOrdersToStorage();
+      }
 
+      // Load Cart
+      const savedCart = localStorage.getItem('kantinku_cart');
+      if (savedCart) {
+        state.cart = JSON.parse(savedCart);
+      }
+    }
+
+    function saveMenusToStorage() {
+      localStorage.setItem('kantinku_menus', JSON.stringify(state.menus));
+    }
+
+    function saveOrdersToStorage() {
+      localStorage.setItem('kantinku_orders', JSON.stringify(state.orders));
+    }
+
+    function saveCartToStorage() {
+      localStorage.setItem('kantinku_cart', JSON.stringify(state.cart));
+    }
+
+    // Helper: Format Rupiah IDR
+    function formatIDR(amount) {
+      return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        maximumFractionDigits: 0
+      }).format(amount);
+    }
+
+    // Helper: Sanitize Strings for HTML XSS prevention
+    function sanitize(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // Toast Notification helper
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      
+      const bgColor = type === 'success' ? 'bg-emerald-600' : type === 'warning' ? 'bg-amber-600' : 'bg-slate-800';
+      
+      toast.className = `${bgColor} text-white px-4 py-3 rounded-xl shadow-lg text-xs font-semibold flex items-center gap-2 pointer-events-auto animate-in slide-in-from-bottom-5 duration-200`;
+      toast.innerHTML = `
+        <i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-info'}"></i>
+        <span>${sanitize(message)}</span>
+      `;
+
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'transition-opacity');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    // ==========================================
+    // RENDER FUNCTIONS - CUSTOMER VIEW
+    // ==========================================
+    function renderCustomerView() {
+      renderCategoryFilters();
+      renderStallFilters();
+      renderBestsellers();
+      renderMenuGrid();
+      updateCartBadge();
+    }
+
+    function renderCategoryFilters() {
+      const categories = ['Semua', 'Makanan Berat', 'Minuman', 'Camilan'];
+      const container = document.getElementById('category-filter-container');
+      
+      container.innerHTML = categories.map(cat => {
+        const isActive = state.selectedCategory === cat;
         return `
-          <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden p-4 space-y-3 shadow-xs">
-            <img src="${item.image}" class="w-full h-36 object-cover rounded-xl bg-slate-100">
-            <h3 class="font-bold text-slate-800 text-sm">${item.name}</h3>
-            <p class="font-extrabold text-brand-600 text-base">${formatIDR(item.price)}</p>
-
-            <div class="flex items-center justify-between pt-2 border-t border-slate-100">
-              <span class="text-xs text-slate-400 font-medium">Jumlah Porsi:</span>
-              <div class="flex items-center gap-2 bg-slate-100 p-1 rounded-xl">
-                <button onclick="updateQty('${item.id}', -1)" class="w-7 h-7 bg-white rounded-lg font-bold text-slate-700 shadow-xs hover:bg-slate-200">-</button>
-                <span class="font-bold text-xs px-1">${qty}</span>
-                <button onclick="updateQty('${item.id}', 1)" class="w-7 h-7 bg-brand-500 text-white rounded-lg font-bold shadow-xs hover:bg-brand-600">+</button>
-              </div>
-            </div>
-          </div>
+          <button 
+            onclick="selectCategory('${cat}')" 
+            class="px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all focus:outline-none focus:ring-2 focus:ring-brand-500 ${
+              isActive 
+                ? 'bg-brand-500 text-white shadow-xs' 
+                : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+            }"
+            aria-pressed="${isActive}"
+          >
+            ${cat}
+          </button>
         `;
       }).join('');
     }
 
-    function updateQty(id, delta) {
-      const item = state.menus.find(m => m.id === id);
-      if (!item) return;
+    function renderStallFilters() {
+      // Get unique stalls from current menus
+      const stalls = ['Semua Stan', ...new Set(state.menus.map(m => m.stall))];
+      const container = document.getElementById('stall-filter-container');
 
-      const cartItem = state.cart.find(c => c.id === id);
-      if (cartItem) {
-        cartItem.qty += delta;
-        if (cartItem.qty <= 0) {
-          state.cart = state.cart.filter(c => c.id !== id);
-        }
-      } else if (delta > 0) {
-        state.cart.push({ ...item, qty: 1 });
+      container.innerHTML = stalls.map(stall => {
+        const isActive = state.selectedStall === stall;
+        return `
+          <button 
+            onclick="selectStall('${sanitize(stall)}')" 
+            class="px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all focus:outline-none focus:ring-2 focus:ring-brand-500 ${
+              isActive 
+                ? 'bg-slate-800 text-white' 
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            }"
+          >
+            <i class="fa-solid fa-store text-[10px] mr-1"></i> ${sanitize(stall)}
+          </button>
+        `;
+      }).join('');
+    }
+
+    function getFilteredMenus() {
+      return state.menus.filter(item => {
+        const matchesQuery = item.name.toLowerCase().includes(state.searchQuery.toLowerCase()) || 
+                             item.desc.toLowerCase().includes(state.searchQuery.toLowerCase());
+        const matchesCategory = state.selectedCategory === 'Semua' || item.category === state.selectedCategory;
+        const matchesStall = state.selectedStall === 'Semua Stan' || item.stall === state.selectedStall;
+
+        return matchesQuery && matchesCategory && matchesStall;
+      });
+    }
+
+    function renderBestsellers() {
+      const container = document.getElementById('bestsellers-grid');
+      const bestsellers = state.menus.filter(m => m.bestseller && m.available);
+
+      if (bestsellers.length === 0) {
+        container.parentElement.classList.add('hidden');
+        return;
+      }
+      container.parentElement.classList.remove('hidden');
+
+      container.innerHTML = bestsellers.slice(0, 4).map(item => `
+        <div class="bg-gradient-to-br from-amber-500/10 to-brand-500/5 border border-amber-200/60 rounded-2xl p-3 flex gap-3 items-center shadow-xs hover:shadow-md transition-shadow">
+          <img src="${sanitize(item.image)}" alt="${sanitize(item.name)}" class="w-20 h-20 object-cover rounded-xl bg-slate-200 flex-shrink-0" onerror="this.onerror=null; this.src='https://placehold.co/100x100/e2e8f0/64748b?text=Kantin';">
+          <div class="flex-grow min-w-0 space-y-1">
+            <span class="text-[10px] font-bold text-brand-600 uppercase tracking-wide">${sanitize(item.stall)}</span>
+            <h3 class="font-bold text-slate-800 text-xs truncate">${sanitize(item.name)}</h3>
+            <p class="font-bold text-slate-900 text-xs">${formatIDR(item.price)}</p>
+            <button onclick="addToCart('${item.id}')" class="w-full py-1 px-2 bg-brand-500 hover:bg-brand-600 text-white rounded-lg text-[11px] font-semibold transition-colors flex items-center justify-center gap-1">
+              <i class="fa-solid fa-plus text-[10px]"></i> Tambah
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderMenuGrid() {
+      const filtered = getFilteredMenus();
+      const container = document.getElementById('menu-grid');
+      const emptyState = document.getElementById('empty-menu-state');
+      const countBadge = document.getElementById('menu-count-badge');
+
+      countBadge.textContent = `${filtered.length} Menu`;
+
+      if (filtered.length === 0) {
+        container.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+        return;
       }
 
+      container.classList.remove('hidden');
+      emptyState.classList.add('hidden');
+
+      container.innerHTML = filtered.map(item => `
+        <article class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col group">
+          <!-- Image Container -->
+          <div class="relative h-44 w-full bg-slate-100 overflow-hidden">
+            <img 
+              src="${sanitize(item.image)}" 
+              alt="${sanitize(item.name)}" 
+              loading="lazy"
+              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              onerror="this.onerror=null; this.src='https://placehold.co/400x300/e2e8f0/64748b?text=Gambar+Kantin';"
+            >
+            <!-- Badge Stall -->
+            <div class="absolute top-3 left-3 bg-slate-900/80 backdrop-blur-md text-white text-[10px] font-semibold px-2.5 py-1 rounded-full">
+              <i class="fa-solid fa-store mr-1 text-brand-400"></i> ${sanitize(item.stall)}
+            </div>
+
+            <!-- Badge Availability -->
+            ${!item.available ? `
+              <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center">
+                <span class="bg-red-600 text-white font-bold text-xs px-3 py-1.5 rounded-full shadow-md">
+                  <i class="fa-solid fa-ban mr-1"></i> Stok Habis
+                </span>
+              </div>
+            ` : ''}
+          </div>
+
+          <!-- Content -->
+          <div class="p-4 flex-grow flex flex-col justify-between space-y-3">
+            <div class="space-y-1">
+              <div class="flex items-center justify-between text-xs text-slate-500">
+                <span class="font-medium text-brand-600">${sanitize(item.category)}</span>
+                <span class="flex items-center gap-1 font-semibold text-amber-500">
+                  <i class="fa-solid fa-star text-[10px]"></i> ${item.rating}
+                </span>
+              </div>
+              <h3 class="font-bold text-slate-800 text-base leading-snug line-clamp-1">${sanitize(item.name)}</h3>
+              <p class="text-xs text-slate-500 line-clamp-2 leading-relaxed">${sanitize(item.desc)}</p>
+            </div>
+
+            <!-- Price & Action Button -->
+            <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+              <div>
+                <span class="text-[10px] text-slate-400 block font-medium">Harga</span>
+                <span class="font-extrabold text-slate-900 text-base">${formatIDR(item.price)}</span>
+              </div>
+
+              <button 
+                onclick="addToCart('${item.id}')" 
+                ${!item.available ? 'disabled' : ''}
+                class="px-3.5 py-2 bg-brand-500 hover:bg-brand-600 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl transition-colors shadow-xs flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                aria-label="Tambah ${sanitize(item.name)} ke keranjang"
+              >
+                <i class="fa-solid fa-cart-plus"></i> Pesan
+              </button>
+            </div>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    // ==========================================
+    // CART & CHECKOUT LOGIC
+    // ==========================================
+    function addToCart(menuId) {
+      const menu = state.menus.find(m => m.id === menuId);
+      if (!menu || !menu.available) return;
+
+      const existing = state.cart.find(c => c.menuId === menuId);
+      if (existing) {
+        existing.qty += 1;
+      } else {
+        state.cart.push({ menuId, qty: 1 });
+      }
+
+      saveCartToStorage();
       updateCartBadge();
-      renderCustomerView();
+      renderCartDrawer();
+      showToast(`${menu.name} ditambahkan ke keranjang`, 'success');
+    }
+
+    function updateCartQty(menuId, change) {
+      const index = state.cart.findIndex(c => c.menuId === menuId);
+      if (index === -1) return;
+
+      state.cart[index].qty += change;
+      if (state.cart[index].qty <= 0) {
+        state.cart.splice(index, 1);
+      }
+
+      saveCartToStorage();
+      updateCartBadge();
+      renderCartDrawer();
+    }
+
+    function removeFromCart(menuId) {
+      state.cart = state.cart.filter(c => c.menuId !== menuId);
+      saveCartToStorage();
+      updateCartBadge();
       renderCartDrawer();
     }
 
     function updateCartBadge() {
-      const totalQty = state.cart.reduce((sum, i) => sum + i.qty, 0);
+      const totalItems = state.cart.reduce((sum, item) => sum + item.qty, 0);
       const badge = document.getElementById('cart-badge-count');
-      if (totalQty > 0) {
-        badge.textContent = totalQty;
+      if (totalItems > 0) {
+        badge.textContent = totalItems;
         badge.classList.remove('hidden');
       } else {
         badge.classList.add('hidden');
@@ -251,177 +967,302 @@
     }
 
     function toggleCartDrawer(open) {
-      const drawer = document.getElementById('cart-drawer');
       const backdrop = document.getElementById('cart-drawer-backdrop');
+      const drawer = document.getElementById('cart-drawer');
+
       if (open) {
+        renderCartDrawer();
+        backdrop.classList.remove('pointer-events-none', 'opacity-0');
+        backdrop.classList.add('opacity-100');
         drawer.classList.remove('translate-x-full');
-        backdrop.classList.remove('hidden');
       } else {
+        backdrop.classList.add('pointer-events-none', 'opacity-0');
+        backdrop.classList.remove('opacity-100');
         drawer.classList.add('translate-x-full');
-        backdrop.classList.add('hidden');
       }
     }
 
     function renderCartDrawer() {
       const container = document.getElementById('cart-items-container');
-      let total = 0;
+      const emptyState = document.getElementById('cart-empty-state');
+      const footer = document.getElementById('cart-footer');
+
       if (state.cart.length === 0) {
-        container.innerHTML = `<p class="text-center text-slate-400 text-xs py-8">Keranjang belanja masih kosong.</p>`;
-        document.getElementById('cart-total').textContent = 'Rp 0';
+        container.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+        footer.classList.add('hidden');
         return;
       }
 
+      container.classList.remove('hidden');
+      emptyState.classList.add('hidden');
+      footer.classList.remove('hidden');
+
+      let subtotal = 0;
+
       container.innerHTML = state.cart.map(item => {
-        const itemTotal = item.price * item.qty;
-        total += itemTotal;
+        const menu = state.menus.find(m => m.id === item.menuId);
+        if (!menu) return '';
+
+        const itemTotal = menu.price * item.qty;
+        subtotal += itemTotal;
+
         return `
-          <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
-            <div>
-              <p class="font-bold text-xs text-slate-800">${item.name}</p>
-              <p class="text-[11px] text-slate-500">${formatIDR(item.price)} x ${item.qty}</p>
+          <div class="flex gap-3 items-center bg-slate-50 p-3 rounded-2xl border border-slate-200/80">
+            <img src="${sanitize(menu.image)}" alt="${sanitize(menu.name)}" class="w-14 h-14 object-cover rounded-xl bg-slate-200" onerror="this.onerror=null; this.src='https://placehold.co/100x100/e2e8f0/64748b?text=Kantin';">
+            
+            <div class="flex-grow min-w-0 space-y-1">
+              <h4 class="font-bold text-slate-800 text-xs truncate">${sanitize(menu.name)}</h4>
+              <p class="text-[11px] text-slate-500">${sanitize(menu.stall)}</p>
+              <p class="font-bold text-slate-900 text-xs">${formatIDR(menu.price)}</p>
             </div>
-            <div class="flex items-center gap-2">
-              <span class="font-bold text-xs text-brand-600 mr-2">${formatIDR(itemTotal)}</span>
-              <button onclick="updateQty('${item.id}', -1)" class="w-6 h-6 bg-slate-200 rounded text-xs font-bold">-</button>
-              <span class="text-xs font-bold">${item.qty}</span>
-              <button onclick="updateQty('${item.id}', 1)" class="w-6 h-6 bg-brand-500 text-white rounded text-xs font-bold">+</button>
+
+            <div class="flex flex-col items-end gap-2">
+              <button onclick="removeFromCart('${menu.id}')" class="text-slate-400 hover:text-red-500 text-xs">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+
+              <div class="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg p-1">
+                <button onclick="updateCartQty('${menu.id}', -1)" class="w-5 h-5 flex items-center justify-center text-slate-600 hover:bg-slate-100 rounded text-xs font-bold">-</button>
+                <span class="text-xs font-bold w-4 text-center">${item.qty}</span>
+                <button onclick="updateCartQty('${menu.id}', 1)" class="w-5 h-5 flex items-center justify-center text-slate-600 hover:bg-slate-100 rounded text-xs font-bold">+</button>
+              </div>
             </div>
           </div>
         `;
       }).join('');
-      document.getElementById('cart-total').textContent = formatIDR(total);
+
+      const serviceFee = 1000;
+      const grandTotal = subtotal + serviceFee;
+
+      document.getElementById('cart-subtotal').textContent = formatIDR(subtotal);
+      document.getElementById('cart-fee').textContent = formatIDR(serviceFee);
+      document.getElementById('cart-total').textContent = formatIDR(grandTotal);
+      document.getElementById('payment-modal-total').textContent = formatIDR(grandTotal);
     }
 
-    function setPaymentMethod(method) {
-      state.selectedPayment = method;
+    function toggleTableInput(show) {
+      const wrapper = document.getElementById('table-number-wrapper');
+      if (show) wrapper.classList.remove('hidden');
+      else wrapper.classList.add('hidden');
+    }
+
+    // ==========================================
+    // PAYMENT & MODAL CONTROLS
+    // ==========================================
+    function openPaymentModal() {
+      if (state.cart.length === 0) return;
+      document.getElementById('payment-modal').classList.remove('hidden');
+    }
+
+    function closePaymentModal() {
+      document.getElementById('payment-modal').classList.add('hidden');
+    }
+
+    function selectPaymentMethod(method) {
+      state.paymentMethod = method;
       ['qris', 'ewallet', 'cash'].forEach(m => {
         const btn = document.getElementById(`pay-${m}`);
-        const box = document.getElementById(`payment-box-${m}`);
         if (m === method) {
-          btn.className = 'p-3 border-2 border-brand-500 bg-brand-50 rounded-xl font-bold text-xs text-brand-700';
-          box.classList.remove('hidden');
+          btn.className = 'p-3 border-2 border-brand-500 bg-brand-50/50 rounded-xl text-center font-semibold text-xs text-brand-700 flex flex-col items-center gap-1 transition-all';
         } else {
-          btn.className = 'p-3 border border-slate-200 rounded-xl font-bold text-xs text-slate-600';
-          box.classList.add('hidden');
+          btn.className = 'p-3 border border-slate-200 rounded-xl text-center font-semibold text-xs text-slate-600 flex flex-col items-center gap-1 hover:border-slate-300 transition-all';
         }
       });
     }
 
-    function openPaymentModal() {
-      if (state.cart.length === 0) {
-        alert('Keranjang belanja masih kosong!');
+    function processOrderSubmit() {
+      const nameInput = document.getElementById('customer-name');
+      const customerName = nameInput.value.trim() || 'Mahasiswa (Anonim)';
+      
+      const orderTypeVal = document.querySelector('input[name="order-type"]:checked').value;
+      const tableNumberVal = document.getElementById('table-number').value.trim();
+
+      if (orderTypeVal === 'dinein' && !tableNumberVal) {
+        showToast('Mohon isi nomor meja untuk antar ke meja!', 'warning');
         return;
       }
-      document.getElementById('payment-modal').classList.remove('hidden');
-    }
 
-    function closePaymentModal() { document.getElementById('payment-modal').classList.add('hidden'); }
-
-    function processOrderSubmit() {
-      const name = document.getElementById('customer-name').value || 'Mahasiswa (Anonim)';
-      let total = 0;
-
-      const orderItems = state.cart.map(i => {
-        const itemTotal = i.price * i.qty;
-        total += itemTotal;
-        return { name: i.name, qty: i.qty, price: i.price, itemTotal };
+      // Compute Total
+      let subtotal = 0;
+      const itemsList = state.cart.map(c => {
+        const menu = state.menus.find(m => m.id === c.menuId);
+        subtotal += (menu ? menu.price : 0) * c.qty;
+        return {
+          name: menu ? menu.name : 'Unknown',
+          qty: c.qty,
+          price: menu ? menu.price : 0
+        };
       });
 
+      const grandTotal = subtotal + 1000;
+
+      // Create new order
       const newOrder = {
         id: 'ORD-' + Math.floor(1000 + Math.random() * 9000),
-        customerName: name,
-        paymentMethod: state.selectedPayment.toUpperCase(),
-        total: total,
+        customerName: sanitize(customerName),
+        orderType: orderTypeVal,
+        tableNumber: orderTypeVal === 'dinein' ? sanitize(tableNumberVal) : '-',
+        method: state.paymentMethod.toUpperCase(),
+        total: grandTotal,
         status: 'Diproses',
         time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB',
-        items: orderItems
+        items: itemsList
       };
 
       state.orders.unshift(newOrder);
+      saveOrdersToStorage();
 
-      const itemsHtml = orderItems.map(i => `
-        <div class="flex justify-between">
-          <span>${i.name} (${i.qty}x)</span>
-          <span>${formatIDR(i.itemTotal)}</span>
-        </div>
-      `).join('');
+      // Clear Cart
+      state.cart = [];
+      saveCartToStorage();
+      updateCartBadge();
 
-      const receipt = document.getElementById('receipt-content');
-      receipt.innerHTML = `
-        <div class="text-center font-bold pb-2 border-b">KANTINKU DIGITAL</div>
-        <p><b>ID Pesanan:</b> ${newOrder.id}</p>
-        <p><b>Pemesan:</b> ${newOrder.customerName}</p>
-        <p><b>Metode:</b> ${newOrder.paymentMethod}</p>
-        <div class="border-t border-b py-2 my-2 space-y-1">${itemsHtml}</div>
-        <div class="flex justify-between font-bold"><span>TOTAL:</span><span>${formatIDR(total)}</span></div>
-        <p class="text-center text-[10px] text-slate-400 mt-2">-- STATUS: LUNAS --</p>
-      `;
-
+      // Close payment modal & drawer
       closePaymentModal();
       toggleCartDrawer(false);
-      document.getElementById('receipt-modal').classList.remove('hidden');
 
-      state.cart = [];
-      updateCartBadge();
-      renderCustomerView();
-      renderCartDrawer();
-      renderAdminOrders();
+      // Show Receipt Modal
+      showReceiptModal(newOrder);
+      showToast('Pesanan berhasil dibuat & dikirim ke kantin!', 'success');
+      
+      // Reset inputs
+      nameInput.value = '';
     }
 
-    function updateOrderStatus(id, newStatus) {
-      const order = state.orders.find(o => o.id === id);
-      if (order) {
-        order.status = newStatus;
-        renderAdminOrders();
-      }
+    function showReceiptModal(order) {
+      const modal = document.getElementById('receipt-modal');
+      const content = document.getElementById('receipt-content');
+
+      content.innerHTML = `
+        <div class="text-center border-b border-dashed border-slate-300 pb-2">
+          <p class="font-bold text-sm">KANTINKU DIGITAL RECEIPT</p>
+          <p class="text-[10px] text-slate-500">ID: ${order.id} | ${order.time}</p>
+        </div>
+        <div class="space-y-1">
+          <p>Pemesan : <span class="font-bold">${order.customerName}</span></p>
+          <p>Tipe     : <span class="font-bold">${order.orderType === 'dinein' ? 'Antar Meja (' + order.tableNumber + ')' : 'Ambil Sendiri'}</span></p>
+          <p>Metode   : <span class="font-bold">${order.method}</span></p>
+        </div>
+        <div class="border-t border-b border-dashed border-slate-300 py-2 space-y-1">
+          ${order.items.map(i => `
+            <div class="flex justify-between">
+              <span>${i.qty}x ${sanitize(i.name)}</span>
+              <span>${formatIDR(i.price * i.qty)}</span>
+            </div>
+          `).join('')}
+        </div>
+        <div class="flex justify-between font-bold text-slate-800 text-xs">
+          <span>TOTAL BAYAR</span>
+          <span>${formatIDR(order.total)}</span>
+        </div>
+      `;
+
+      modal.classList.remove('hidden');
     }
 
-    function deleteOrder(id) {
-      state.orders = state.orders.filter(o => o.id !== id);
+    function closeReceiptModal() {
+      document.getElementById('receipt-modal').classList.add('hidden');
+    }
+
+    // ==========================================
+    // RENDER FUNCTIONS - ADMIN PANEL
+    // ==========================================
+    function renderAdminView() {
+      renderAdminStats();
       renderAdminOrders();
+      renderAdminMenuTable();
+    }
+
+    function renderAdminStats() {
+      const totalOrders = state.orders.length;
+      const totalRevenue = state.orders.reduce((sum, o) => sum + o.total, 0);
+      const pendingOrders = state.orders.filter(o => o.status === 'Diproses').length;
+
+      document.getElementById('stat-total-orders').textContent = totalOrders;
+      document.getElementById('stat-total-revenue').textContent = formatIDR(totalRevenue);
+      document.getElementById('stat-pending-orders').textContent = pendingOrders;
     }
 
     function renderAdminOrders() {
       const container = document.getElementById('admin-orders-container');
-      if (!container) return;
 
       if (state.orders.length === 0) {
-        container.innerHTML = `<p class="text-slate-400 text-xs py-4 text-center">Belum ada pesanan masuk.</p>`;
+        container.innerHTML = `
+          <div class="text-center py-8 text-slate-400 text-xs">
+            Belum ada pesanan masuk hari ini.
+          </div>
+        `;
         return;
       }
 
       container.innerHTML = state.orders.map(order => {
-        const isSelesai = order.status === 'Selesai';
-        const statusBadgeColor = isSelesai ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800';
+        const statusColors = {
+          'Diproses': 'bg-amber-100 text-amber-800 border-amber-300',
+          'Siap Diambil': 'bg-blue-100 text-blue-800 border-blue-300',
+          'Selesai': 'bg-emerald-100 text-emerald-800 border-emerald-300'
+        };
 
         return `
-          <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 space-y-3">
-            <div class="flex justify-between items-center border-b pb-2">
-              <div>
-                <span class="font-bold text-xs text-slate-800">${order.id}</span>
-                <span class="text-[10px] ${statusBadgeColor} px-2 py-0.5 rounded-full font-semibold ml-2">${order.status}</span>
+          <div class="border border-slate-200 rounded-2xl p-4 bg-slate-50/50 space-y-3">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-2">
+              <div class="space-y-0.5">
+                <div class="flex items-center gap-2">
+                  <span class="font-bold text-slate-800 text-sm">${order.id}</span>
+                  <span class="text-[11px] px-2 py-0.5 rounded-full font-semibold border ${statusColors[order.status]}">
+                    ${order.status}
+                  </span>
+                </div>
+                <p class="text-xs text-slate-500">
+                  <i class="fa-solid fa-user text-[10px] mr-1"></i> ${order.customerName} 
+                  • <i class="fa-solid fa-clock text-[10px] ml-1 mr-0.5"></i> ${order.time}
+                </p>
               </div>
-              <span class="text-xs text-slate-500">${order.time}</span>
-            </div>
-            <div class="text-xs space-y-1">
-              <p><b>Pemesan:</b> ${order.customerName}</p>
-              <p><b>Metode:</b> ${order.paymentMethod}</p>
-              <div class="bg-white p-2 rounded-lg border border-slate-100 space-y-1 mt-1">
-                ${order.items.map(i => `<div class="flex justify-between text-[11px]"><span>${i.name} (${i.qty}x)</span><span>${formatIDR(i.itemTotal)}</span></div>`).join('')}
+
+              <!-- Order Type Badge -->
+              <div class="text-xs font-semibold text-slate-700 bg-white border border-slate-200 px-3 py-1 rounded-xl w-fit">
+                ${order.orderType === 'dinein' ? `
+                  <i class="fa-solid fa-chair text-brand-500 mr-1"></i> Antar Meja: <span class="font-bold">${order.tableNumber}</span>
+                ` : `
+                  <i class="fa-solid fa-bag-shopping text-brand-500 mr-1"></i> Ambil Sendiri
+                `}
               </div>
-              <p class="font-bold text-right text-brand-600 mt-1">Total: ${formatIDR(order.total)}</p>
             </div>
 
-            <div class="flex justify-end gap-2 pt-2 border-t border-slate-200">
-              ${!isSelesai ? `
-                <button onclick="updateOrderStatus('${order.id}', 'Selesai')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg transition-colors">
-                  <i class="fa-solid fa-check mr-1"></i> Tandai Selesai
-                </button>
-              ` : `
-                <span class="text-xs text-emerald-600 font-bold self-center mr-auto">✓ Pesanan Selesai</span>
-              `}
-              <button onclick="deleteOrder('${order.id}')" class="px-3 py-1.5 bg-slate-200 hover:bg-red-500 hover:text-white text-slate-600 font-bold text-xs rounded-lg transition-colors">
-                <i class="fa-solid fa-trash mr-1"></i> Hapus
+            <!-- Items list -->
+            <div class="text-xs space-y-1 text-slate-600 bg-white p-3 rounded-xl border border-slate-100">
+              ${order.items.map(i => `
+                <div class="flex justify-between">
+                  <span>${i.qty}x ${sanitize(i.name)}</span>
+                  <span class="font-medium text-slate-800">${formatIDR(i.price * i.qty)}</span>
+                </div>
+              `).join('')}
+              <div class="border-t border-slate-100 pt-1 font-bold text-slate-900 flex justify-between text-xs">
+                <span>Total (${order.method})</span>
+                <span class="text-brand-600">${formatIDR(order.total)}</span>
+              </div>
+            </div>
+
+            <!-- Status Action Buttons -->
+            <div class="flex items-center justify-end gap-2 pt-1">
+              <span class="text-xs text-slate-500 mr-auto font-medium">Ubah Status:</span>
+              <button 
+                onclick="updateOrderStatus('${order.id}', 'Diproses')"
+                class="px-2.5 py-1 text-xs font-semibold rounded-lg border transition-colors ${order.status === 'Diproses' ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'}"
+              >
+                Diproses
+              </button>
+              <button 
+                onclick="updateOrderStatus('${order.id}', 'Siap Diambil')"
+                class="px-2.5 py-1 text-xs font-semibold rounded-lg border transition-colors ${order.status === 'Siap Diambil' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'}"
+              >
+                Siap
+              </button>
+              <button 
+                onclick="updateOrderStatus('${order.id}', 'Selesai')"
+                class="px-2.5 py-1 text-xs font-semibold rounded-lg border transition-colors ${order.status === 'Selesai' ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'}"
+              >
+                Selesai
               </button>
             </div>
           </div>
@@ -429,26 +1270,221 @@
       }).join('');
     }
 
-    function closeReceiptModal() { document.getElementById('receipt-modal').classList.add('hidden'); }
-
-    function switchView(view) {
-      document.getElementById('customer-view').classList.toggle('hidden', view !== 'customer');
-      document.getElementById('admin-view').classList.toggle('hidden', view !== 'admin');
-
-      const btnCustomer = document.getElementById('btn-role-customer');
-      const btnAdmin = document.getElementById('btn-role-admin');
-
-      if (view === 'customer') {
-        btnCustomer.className = 'px-3 py-1.5 rounded-lg font-medium text-slate-700 bg-white shadow-xs';
-        btnAdmin.className = 'px-3 py-1.5 rounded-lg font-medium text-slate-500';
-      } else {
-        btnAdmin.className = 'px-3 py-1.5 rounded-lg font-medium text-slate-700 bg-white shadow-xs';
-        btnCustomer.className = 'px-3 py-1.5 rounded-lg font-medium text-slate-500';
+    function updateOrderStatus(orderId, newStatus) {
+      const order = state.orders.find(o => o.id === orderId);
+      if (order) {
+        order.status = newStatus;
+        saveOrdersToStorage();
+        renderAdminStats();
         renderAdminOrders();
+        showToast(`Status pesanan ${orderId} diperbarui menjadi: ${newStatus}`, 'info');
       }
     }
 
-    document.addEventListener('DOMContentLoaded', initData);
+    function renderAdminMenuTable() {
+      const tbody = document.getElementById('admin-menu-table-body');
+
+      tbody.innerHTML = state.menus.map(menu => `
+        <tr class="hover:bg-slate-50 transition-colors">
+          <td class="py-3 px-4 flex items-center gap-3">
+            <img src="${sanitize(menu.image)}" alt="" class="w-10 h-10 object-cover rounded-lg bg-slate-200" onerror="this.onerror=null; this.src='https://placehold.co/100x100/e2e8f0/64748b?text=Menu';">
+            <div>
+              <p class="font-bold text-slate-800">${sanitize(menu.name)}</p>
+              <p class="text-[10px] text-slate-400 line-clamp-1">${sanitize(menu.desc)}</p>
+            </div>
+          </td>
+          <td class="py-3 px-4 font-medium text-xs text-slate-700">${sanitize(menu.stall)}</td>
+          <td class="py-3 px-4 text-xs">${sanitize(menu.category)}</td>
+          <td class="py-3 px-4 font-bold text-slate-900 text-xs">${formatIDR(menu.price)}</td>
+          <td class="py-3 px-4">
+            <button 
+              onclick="toggleMenuAvailability('${menu.id}')"
+              class="px-2.5 py-1 rounded-full text-[11px] font-bold border transition-all ${
+                menu.available 
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' 
+                  : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
+              }"
+            >
+              ${menu.available ? 'Tersedia (Ready)' : 'Habis (Out)'}
+            </button>
+          </td>
+          <td class="py-3 px-4 text-right space-x-1">
+            <button onclick="editMenu('${menu.id}')" class="p-1.5 text-slate-500 hover:text-brand-600 rounded-lg hover:bg-slate-100" title="Edit Menu">
+              <i class="fa-solid fa-pen-to-square"></i>
+            </button>
+            <button onclick="deleteMenu('${menu.id}')" class="p-1.5 text-slate-500 hover:text-red-600 rounded-lg hover:bg-slate-100" title="Hapus Menu">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function toggleMenuAvailability(menuId) {
+      const menu = state.menus.find(m => m.id === menuId);
+      if (menu) {
+        menu.available = !menu.available;
+        saveMenusToStorage();
+        renderAdminMenuTable();
+        renderCustomerView();
+        showToast(`Stok ${menu.name} diubah menjadi ${menu.available ? 'Tersedia' : 'Habis'}`, 'info');
+      }
+    }
+
+    // Menu Modal Management (Create / Edit)
+    function openMenuModal(menuData = null) {
+      const modal = document.getElementById('menu-modal');
+      const title = document.getElementById('menu-modal-title');
+      const form = document.getElementById('menu-form');
+
+      form.reset();
+
+      if (menuData) {
+        title.textContent = 'Edit Menu';
+        document.getElementById('form-menu-id').value = menuData.id;
+        document.getElementById('form-menu-name').value = menuData.name;
+        document.getElementById('form-menu-stall').value = menuData.stall;
+        document.getElementById('form-menu-category').value = menuData.category;
+        document.getElementById('form-menu-price').value = menuData.price;
+        document.getElementById('form-menu-rating').value = menuData.rating;
+        document.getElementById('form-menu-image').value = menuData.image;
+        document.getElementById('form-menu-desc').value = menuData.desc;
+        document.getElementById('form-menu-available').checked = menuData.available;
+      } else {
+        title.textContent = 'Tambah Menu Baru';
+        document.getElementById('form-menu-id').value = '';
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    function closeMenuModal() {
+      document.getElementById('menu-modal').classList.add('hidden');
+    }
+
+    function handleMenuFormSubmit(event) {
+      event.preventDefault();
+
+      const id = document.getElementById('form-menu-id').value;
+      const name = document.getElementById('form-menu-name').value.trim();
+      const stall = document.getElementById('form-menu-stall').value;
+      const category = document.getElementById('form-menu-category').value;
+      const price = parseFloat(document.getElementById('form-menu-price').value);
+      const rating = parseFloat(document.getElementById('form-menu-rating').value) || 4.5;
+      const image = document.getElementById('form-menu-image').value.trim() || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80';
+      const desc = document.getElementById('form-menu-desc').value.trim();
+      const available = document.getElementById('form-menu-available').checked;
+
+      if (id) {
+        // Edit existing
+        const index = state.menus.findIndex(m => m.id === id);
+        if (index !== -1) {
+          state.menus[index] = { ...state.menus[index], name, stall, category, price, rating, image, desc, available };
+          showToast('Menu berhasil diperbarui!', 'success');
+        }
+      } else {
+        // Create new
+        const newMenu = {
+          id: 'm-' + Date.now(),
+          name,
+          stall,
+          category,
+          price,
+          rating,
+          image,
+          desc,
+          available,
+          bestseller: false
+        };
+        state.menus.push(newMenu);
+        showToast('Menu baru berhasil ditambahkan!', 'success');
+      }
+
+      saveMenusToStorage();
+      closeMenuModal();
+      renderAdminView();
+      renderCustomerView();
+    }
+
+    function editMenu(menuId) {
+      const menu = state.menus.find(m => m.id === menuId);
+      if (menu) openMenuModal(menu);
+    }
+
+    function deleteMenu(menuId) {
+      if (confirm('Apakah Anda yakin ingin menghapus menu ini?')) {
+        state.menus = state.menus.filter(m => m.id !== menuId);
+        saveMenusToStorage();
+        renderAdminView();
+        renderCustomerView();
+        showToast('Menu berhasil dihapus.', 'info');
+      }
+    }
+
+    // ==========================================
+    // VIEW SWITCHER & FILTERS LOGIC
+    // ==========================================
+    function switchView(view) {
+      state.currentView = view;
+      
+      const customerView = document.getElementById('customer-view');
+      const adminView = document.getElementById('admin-view');
+      const btnCustomer = document.getElementById('btn-role-customer');
+      const btnAdmin = document.getElementById('btn-role-admin');
+      const btnCartToggle = document.getElementById('btn-cart-toggle');
+
+      if (view === 'customer') {
+        customerView.classList.remove('hidden');
+        adminView.classList.add('hidden');
+        btnCartToggle.classList.remove('hidden');
+
+        btnCustomer.className = 'px-3 py-1.5 rounded-lg font-medium transition-all duration-200 flex items-center gap-1.5 text-slate-700 bg-white shadow-xs focus:outline-none focus:ring-2 focus:ring-brand-500';
+        btnAdmin.className = 'px-3 py-1.5 rounded-lg font-medium transition-all duration-200 flex items-center gap-1.5 text-slate-500 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500';
+        
+        renderCustomerView();
+      } else {
+        customerView.classList.add('hidden');
+        adminView.classList.remove('hidden');
+        btnCartToggle.classList.add('hidden');
+
+        btnAdmin.className = 'px-3 py-1.5 rounded-lg font-medium transition-all duration-200 flex items-center gap-1.5 text-slate-700 bg-white shadow-xs focus:outline-none focus:ring-2 focus:ring-brand-500';
+        btnCustomer.className = 'px-3 py-1.5 rounded-lg font-medium transition-all duration-200 flex items-center gap-1.5 text-slate-500 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500';
+        
+        renderAdminView();
+      }
+    }
+
+    function selectCategory(category) {
+      state.selectedCategory = category;
+      renderCategoryFilters();
+      renderMenuGrid();
+    }
+
+    function selectStall(stall) {
+      state.selectedStall = stall;
+      renderStallFilters();
+      renderMenuGrid();
+    }
+
+    function handleSearchFilter() {
+      const input = document.getElementById('search-input');
+      state.searchQuery = input.value;
+      renderMenuGrid();
+    }
+
+    function resetFilters() {
+      state.searchQuery = '';
+      state.selectedCategory = 'Semua';
+      state.selectedStall = 'Semua Stan';
+      document.getElementById('search-input').value = '';
+      renderCustomerView();
+    }
+
+    // Initialize application on window load
+    window.onload = function() {
+      initData();
+      switchView('customer');
+    };
   </script>
 </body>
 </html>
